@@ -1,5 +1,7 @@
 # VoiceJoinLeave
 
+[![CI](https://github.com/Ariazonaa/voiceJoinLeave/actions/workflows/ci.yml/badge.svg)](https://github.com/Ariazonaa/voiceJoinLeave/actions/workflows/ci.yml)
+
 A [Vencord](https://github.com/Vendicated/Vencord) userplugin that shows at a glance who just joined or left a voice channel.
 
 > This is a third party plugin. It is not made or supported by the Vencord team, so please report problems [here](https://github.com/Ariazonaa/voiceJoinLeave/issues) and not in the Vencord server.
@@ -70,6 +72,8 @@ The logic that doesn't depend on Discord is unit tested. Run from your Vencord f
 ```sh
 node --import tsx --test src/userplugins/voiceJoinLeave/tracker.test.ts
 ```
+
+CI builds the plugin against the latest Vencord on every push and once a day. It also loads Discord stable and canary with Vencord's patch reporter and fails if one of this plugin's patches no longer applies, so a Discord update that breaks the plugin shows up as a red badge above.
 
 ## Credits
 
