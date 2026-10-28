@@ -1,0 +1,121 @@
+name: CI
+
+on:
+    push:
+    pull_request:
+    workflow_dispatch:
+    # Discord and Vencord change without this repo changing, so check daily whether the plugin still works
+    schedule:
+        - cron: "0 6 * * *"
+
+env:
+    PLUGIN_NAME: VoiceJoinLeave
+    PLUGIN_DIR: src/userplugins/voiceJoinLeave
+
+jobs:
+    build:
+        name: Build & test
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Check out Vencord
+              uses: actions/checkout@v7
+              with:
+                  repository: Vendicated/Vencord
+                  ref: main
+
+            - name: Check out plugin
+              uses: actions/checkout@v7
+              with:
+                  path: ${{ env.PLUGIN_DIR }}
+
+            - uses: pnpm/action-setup@v6 # Install pnpm using packageManager key in Vencord's package.json
+
+            - name: Use Node.js 24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Unit tests
+              run: node --import tsx --test "$PLUGIN_DIR/tracker.test.ts"
+
+            - name: Typecheck
+              run: pnpm testTsc
+
+            - name: Lint
+              run: |
+                  pnpm eslint "$PLUGIN_DIR"
+                  pnpm stylelint "$PLUGIN_DIR/**/*.css"
+
+            - name: Test if desktop version compiles
+              run: pnpm build
+
+            - name: Test if web version compiles
+              run: pnpm buildWeb
+
+    patches:
+        name: Patches (Discord ${{ matrix.branch }})
+        needs: build
+        runs-on: ubuntu-latest
+        # canary breaks often and gets fixed again, so it only warns
+        continue-on-error: ${{ matrix.branch == 'canary' }}
+
+        strategy:
+            fail-fast: false
+            matrix:
+                branch: [stable, canary]
+
+        steps:
+            - name: Check out Vencord
+              uses: actions/checkout@v7
+              with:
+                  repository: Vendicated/Vencord
+                  ref: main
+
+            - name: Check out plugin
+              uses: actions/checkout@v7
+              with:
+                  path: ${{ env.PLUGIN_DIR }}
+
+            - uses: pnpm/action-setup@v6
+
+            - name: Use Node.js 24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build Vencord Reporter Version
+              run: |
+                  pnpm buildReporter
+                  grep -q "$PLUGIN_NAME" dist/browser.js || { echo "::error::$PLUGIN_NAME is missing from the reporter build"; exit 1; }
+
+            - name: Run Reporter
+              timeout-minutes: 10
+              run: |
+                  export PATH="$PWD/node_modules/.bin:$PATH"
+                  export CHROMIUM_BIN=/usr/bin/google-chrome
+                  if [[ "${{ matrix.branch }}" = "canary" ]]; then export USE_CANARY=true; fi
+
+                  esbuild scripts/generateReport.ts > dist/report.mjs
+
+                  # fails whenever any Vencord plugin is broken, the next step only checks ours
+                  node dist/report.mjs > report.md || true
+
+            - name: Check report for ${{ env.PLUGIN_NAME }}
+              run: node "$PLUGIN_DIR/.github/scripts/checkReport.cjs" report.md "$PLUGIN_NAME" SortedVoiceStateStore
+
+            - name: Upload full report
+              if: always()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: report-${{ matrix.branch }}
+                  path: report.md
+                  if-no-files-found: ignore
