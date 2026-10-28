@@ -1,0 +1,50 @@
+:root {
+    --vc-vjl-join-color: #23a55a;
+}
+
+/* Voice user row in sidebar */
+.vc-vjl-joined > div {
+    background-color: color-mix(in srgb, var(--vc-vjl-join-color) 22%, transparent);
+    box-shadow: inset 2px 0 0 var(--vc-vjl-join-color);
+    animation: vc-vjl-flash 1.2s ease-out;
+}
+
+.vc-vjl-left {
+    opacity: 0.4;
+    filter: grayscale(1);
+}
+
+@keyframes vc-vjl-flash {
+    from {
+        background-color: color-mix(in srgb, var(--vc-vjl-join-color) 70%, transparent);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vc-vjl-joined > div {
+        animation: none;
+    }
+}
+
+/* Avatars in the call panel */
+.vc-vjl-avatar-joined {
+    box-shadow: 0 0 0 2px var(--vc-vjl-join-color);
+    animation: vc-vjl-ring-pulse 1.2s ease-out;
+}
+
+.vc-vjl-avatar-left {
+    opacity: 0.4;
+    filter: grayscale(1);
+}
+
+@keyframes vc-vjl-ring-pulse {
+    from {
+        box-shadow: 0 0 0 5px color-mix(in srgb, var(--vc-vjl-join-color) 50%, transparent);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vc-vjl-avatar-joined {
+        animation: none;
+    }
+}
