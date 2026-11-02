@@ -6,10 +6,12 @@
 
 import "./styles.css";
 
+import { Heading } from "@components/Heading";
 import { Link } from "@components/Link";
+import { Paragraph } from "@components/Paragraph";
 import definePlugin from "@utils/types";
 import { Channel } from "@vencord/discord-types";
-import { Forms, React } from "@webpack/common";
+import { React } from "@webpack/common";
 
 import { countPresent, getRowState, getVersion, reset, startRuntime, stopRuntime, subscribe, VoiceEntry, VoiceStates, withChannelGhosts, withGhosts } from "./runtime";
 import { settings } from "./settings";
@@ -26,12 +28,12 @@ export default definePlugin({
     // userplugins get no source code button in the plugin modal, so link the repo here
     settingsAboutComponent: () => (
         <>
-            <Forms.FormTitle tag="h3">Source code &amp; updates</Forms.FormTitle>
-            <Forms.FormText>
+            <Heading tag="h3" style={{ marginBottom: 8 }}>Source code &amp; updates</Heading>
+            <Paragraph>
                 This is a third party plugin, not made by the Vencord team. Updates, source code and bug reports: <Link href={REPO_URL}>{REPO_URL.replace("https://", "")}</Link>
                 {" · "}
                 <Link href={`${REPO_URL}/issues`}>Report a bug</Link>
-            </Forms.FormText>
+            </Paragraph>
         </>
     ),
 

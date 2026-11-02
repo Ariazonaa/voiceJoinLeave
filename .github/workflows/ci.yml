@@ -44,7 +44,7 @@ jobs:
               run: node --import tsx --test "$PLUGIN_DIR/tracker.test.ts"
 
             - name: Typecheck
-              run: pnpm testTsc
+              run: pnpm test:ts
 
             - name: Lint
               run: |
