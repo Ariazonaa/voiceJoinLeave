@@ -46,10 +46,13 @@ jobs:
             - name: Typecheck
               run: pnpm test:ts
 
+            # Vencord gitignores src/userplugins. oxlint still lints the plugin because its checkout is a
+            # nested git repo, but oxfmt drops ignored files matched by a glob, so the shell expands it instead
             - name: Lint
               run: |
-                  pnpm eslint "$PLUGIN_DIR"
-                  pnpm stylelint "$PLUGIN_DIR/**/*.css"
+                  pnpm oxlint "$PLUGIN_DIR"
+                  shopt -s globstar dotglob nullglob
+                  pnpm oxfmt --check "$PLUGIN_DIR"/**/*.{css,html,json,yml,yaml}
 
             - name: Test if desktop version compiles
               run: pnpm build
